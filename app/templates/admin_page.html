@@ -1,0 +1,179 @@
+<!-- HTML-страница "Панель администратора" -->
+<!-- Разработал студент группы А-07-16 Бахтин Евгений -->
+<!-- Разработано с использованием фреймворка Bootsrap -->
+<!-- Версия 1.0 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- PAGE settings -->
+  <link rel="icon" href="https://templates.pingendo.com/assets/Pingendo_favicon.ico">
+  <title>Паенль администратора</title>
+  <!-- CSS dependencies -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}" type="text/css">
+</head>
+<body>
+  <div class="py-5" style="">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="display-4 mx-auto">Панель администратора</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5" style="">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6" style="">
+          <ul class="nav nav-tabs" style="">
+            <li class="nav-item text-dark"> <a href="" class="nav-link text-dark active" data-toggle="tab" data-target="#tabone">Пользователи</a> </li>
+            <li class="nav-item text-dark" style=""> <a class="nav-link text-dark" href="" data-toggle="tab" data-target="#tabtwo">Датчики</a> </li>
+          </ul>
+          <div class="tab-content mt-2">
+            <div class="tab-pane fade active show" id="tabone" role="tabpanel">
+              <div class="table-responsive">
+                <table class="table table-striped table-borderless">
+                  <thead>
+                    <tr>
+                      <th >Id</th>
+                      <th>Логин</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for user in users %}
+                    <tr>
+                      <td>{{ user[0] }}</td>
+                      <td>{{ user[1] }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tabtwo" role="tabpanel">
+              <p class="">Температура</p>
+              <div class="table-responsive">
+                <table class="table table-striped table-borderless">
+                  <thead>
+                    <tr>
+                      <th >Id</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for temperature_sensor in temperature_sensors %}
+                    <tr>
+                      <td>{{ temperature_sensor }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+               <p class="">Давление</p>
+              <div class="table-responsive">
+                <table class="table table-striped table-borderless">
+                  <thead>
+                    <tr>
+                      <th >Id</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for pressure_sensor in pressure_sensors %}
+                    <tr>
+                      <td>{{ pressure_sensor }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6" style="">
+          <form method="POST">
+            <div class="row">
+              <div class="col-md-6 py-1" style="">
+                <div class="row">
+                  <div class="col-md-12 py-1">
+                    <b>
+                      <p style="">Тип датчика</p>
+                    </b>
+                    <div class="row">
+                      <div class="col-md-6" style="">
+                        <p>Температура</p>
+                        <div class="row">
+                          <div class="col-md-12">
+                            <p>Давление</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group"><input type="radio" class="form-control w-25" name="sensor_type" id="temperature" value="temperature"><input type="radio" class="form-control w-25" name="sensor_type" id="pressure" value="pressure"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 py-1" style="">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group row">
+                      <div class="col-10">
+                        <input type="text" class="form-control" id="inputmailh" name="id_for_drop" placeholder="Id датчика для удаления"> </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-10"><button type="submit" class="btn btn-dark" name="sensor" value="add">Добавить</button></div>
+                </div>
+                <button type="submit" class="btn btn-dark" name="sensor" value="drop">Удалить</button>
+              </div>
+            </div>
+          </form>
+          <form method="POST">
+            <div class="row">
+              <div class="col-md-12 py-4" style="">
+                <div class="form-group row">
+                  <div class="col-10">
+                    {% with messages = get_flashed_messages() %}
+                      {% if messages %}
+                        {% for message in messages %}
+                          <p class=flash style="line-height: normal; font-size: 14px; font-family: Arial; font-weight: bold; font-style: normal; text-decoration: none;">{{ message }}</p>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+                    <input type="text" class="form-control" placeholder="Логин пользователя" name="login"> </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-10"><button type="submit" class="btn btn-dark" name="user" value="add">Добавить</button></div>
+                </div>
+                <button type="submit" class="btn btn-dark" name="user" value="drop">Удалить</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-2" style="">
+          <form action="{{ url_for('logout') }}">
+            <button type="submit" class="btn btn-dark text-light w-100">Выход</button>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 mx-auto" style="">
+          <form id="c_form-h" class="" style="">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" style=""></script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!-- HTML-страница "Панель мониторинга" -->
+<!-- Разработал студент группы А-07-16 Бахтин Евгений -->
+<!-- Разработано с использованием фреймворка Bootsrap -->
+<!-- Версия 1.0 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- PAGE settings -->
+  <title>Панель мониторинга</title>
+  <!-- CSS dependencies -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}" type="text/css">
+  <script type="text/javascript" src="http://kozea.github.com/pygal.js/javascripts/svg.jquery.js"></script>
+  <script type="text/javascript" src="http://kozea.github.com/pygal.js/javascripts/pygal-tooltips.js"></script>
+</head>
+
+<body>
+  <div class="py-5 w-100" style="">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="display-4 mx-auto">Панель мониторинга</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5" style="">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 py-2" style="">
+          <div class="row">
+            <div class="col-md-12">
+              <h5 class="">Датчик температуры (°С)</h5>
+            </div>
+          </div>
+          <canvas id="temperature_canvas" width="385" height="300"></canvas>
+        </div>
+        <div class="col-md-4" style="">
+          <div class="row">
+            <div class="col-md-9 py-2" style="">
+              <form method="POST">
+                <div class="form-group"><label>Начальное время</label> <input type="datetime-local" class="form-control form-control-lg" name = "temp_datetime_from"> </div>
+                <div class="form-group"><label>Конечное время</label> <input type="datetime-local" class="form-control form-control-lg" name = "temp_datetime_to"> </div><button type="submit" class="btn btn-dark" name="load_xlsx" value="temperature">Выгрузить в формате XLSX</button>
+              </form>
+              {% with messages = get_flashed_messages(category_filter=["temperature"]) %}
+                {% if messages %}
+                    {% for message in messages %}
+                      {{ message }}
+                    {% endfor %}
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 py-2" style="">
+          <div class="card">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs"> <i class="fa fa-lg fa-user py-2 d-block"></i></ul>
+            </div>
+            <div class="card-body">
+              <p>Вы вошли как пользователь:</p>
+              <p><b>{{ current_user.login }}</b></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 py-2" style="">
+          <div class="row">
+            <div class="col-md-12">
+              <h5 class="">Датчик давления (Па)</h5>
+            </div>
+          </div>
+          <canvas id="pressure_canvas" width="385" height="300"></canvas>
+        </div>
+        <div class="col-md-3 py-2" style="">
+          <form method="POST">
+            <div class="form-group"><label>Начальное время</label> <input type="datetime-local" class="form-control form-control-lg" name = "press_datetime_from"> </div>
+            <div class="form-group"><label>Конечное время</label> <input type="datetime-local" class="form-control form-control-lg" name = "press_datetime_to"> </div><button type="submit" class="btn btn-dark" name="load_xlsx" value="pressure">Выгрузить в формате XLSX</button>
+          </form>
+          {% with messages = get_flashed_messages(category_filter=["pressure"]) %}
+            {% if messages %}
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div class="col-md-4 py-2" style=""></div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4"></div>
+        <div class="col-md-4 " style="">
+          <div class="row">
+            <div class="col-md-12" style="">
+              <form action="{{ url_for('logout') }}">
+                <button type="submit" class="btn btn-dark btn-block btn-lg">Выход</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" style=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+  <!-- Функции обработки данных клиентом по механизму SSE и визуализации показаний датчиков -->
+  <script>
+    $(document).ready(function () {
+        const temp_config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: [],
+                    fill: false,
+                }],
+            },
+            options: {
+                responsive: false,
+                legend: {
+                    display: false,
+                    fullWidth: true
+                },
+                title: {
+                    display: false
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: false
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: false
+                        }
+                    }]
+                }
+            }
+        };
+
+        const press_config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    backgroundColor: 'rgb(2, 146, 183)',
+                    borderColor: 'rgb(2, 146, 183)',
+                    data: [],
+                    fill: false,
+                }],
+            },
+            options: {
+                responsive: false,
+                legend: {
+                    display: false,
+                    fullWidth: true
+                },
+                title: {
+                    display: false
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: false
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: false
+                        }
+                    }]
+                }
+            }
+        };
+
+        const temp_context = document.getElementById('temperature_canvas').getContext('2d');
+        const press_context = document.getElementById('pressure_canvas').getContext('2d');
+
+        const temp_lineChart = new Chart(temp_context, temp_config);
+        const press_lineChart = new Chart(press_context, press_config);
+
+        const temp_source = new EventSource("/temperature-chart-data");
+        const press_source = new EventSource("/pressure-chart-data");
+
+        temp_source.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (temp_config.data.labels.length === 7) {
+                temp_config.data.labels.shift();
+                temp_config.data.datasets[0].data.shift();
+            }
+            temp_config.data.labels.push(data.time);
+            temp_config.data.datasets[0].data.push(data.value);
+            temp_lineChart.update();
+        }
+
+        press_source.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (press_config.data.labels.length === 7) {
+                press_config.data.labels.shift();
+                press_config.data.datasets[0].data.shift();
+            }
+            press_config.data.labels.push(data.time);
+            press_config.data.datasets[0].data.push(data.value);
+            press_lineChart.update();
+        }
+    });
+  </script>
+</body>
+</html>
